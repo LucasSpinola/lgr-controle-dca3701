@@ -1,0 +1,11 @@
+{
+  "name": "lgr-controle",
+  "version": "1.0.0",
+  "description": "Traçado do lugar geométrico das raízes em 12 passos.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "npx --yes serve . -l 8000",
+    "teste": "node testes/executar.js && node testes/raizes.js && node testes/interface.js"
+  }
+}
