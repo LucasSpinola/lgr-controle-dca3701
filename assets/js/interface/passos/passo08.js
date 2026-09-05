@@ -37,7 +37,10 @@ export function renderizar(destino, analise, contexto = {}) {
   paragrafo(destino, '**5) Raízes da equação de descolamento:**');
   for (const item of descolamento.candidatos) {
     if (item.real) {
-      const situacao = item.noLugar ? '\\text{pertence ao LGR}' : '\\text{fora do LGR}';
+      let situacao = item.noLugar ? '\\text{pertence ao LGR}' : '\\text{fora do LGR}';
+      if (item.degenerado) {
+        situacao = '\\text{coincide com polo ou zero, não é descolamento}';
+      }
       formula(
         destino,
         `s = ${fixoLatex(item.s.re, 4)}, \\quad K = ${fixoLatex(item.ganho, 4)} \\quad [${situacao}]`,

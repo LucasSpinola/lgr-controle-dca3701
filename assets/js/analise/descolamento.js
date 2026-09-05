@@ -3,6 +3,11 @@ import * as C from '../nucleo/complexo.js';
 import { raizes } from '../nucleo/raizes.js';
 import { raizesReais, pertenceAoLugar } from './eixoReal.js';
 
+function coincideComPoloOuZero(candidato, polos, zeros, escala) {
+  const tolerancia = 1e-6 * Math.max(1, escala);
+  return [...polos, ...zeros].some((ponto) => C.distancia(candidato, ponto) < tolerancia);
+}
+
 export function analisarDescolamento(numerador, denominador, polos, zeros) {
   const derivadaNumerador = P.derivar(numerador);
   const derivadaDenominador = P.derivar(denominador);
@@ -11,8 +16,10 @@ export function analisarDescolamento(numerador, denominador, polos, zeros) {
     P.multiplicar(denominador, derivadaNumerador),
   );
 
+  const escala = [...polos, ...zeros].reduce((maior, z) => Math.max(maior, C.modulo(z)), 1);
   const reais = raizesReais(polos, zeros);
   const candidatos = raizes(equacao).map((r) => {
+    const degenerado = coincideComPoloOuZero(r, polos, zeros, escala);
     const valorNumerador = P.avaliarComplexo(numerador, r);
     const ganho = C.modulo(valorNumerador) > 1e-12
       ? C.negar(C.dividir(P.avaliarComplexo(denominador, r), valorNumerador))
@@ -27,7 +34,8 @@ export function analisarDescolamento(numerador, denominador, polos, zeros) {
         real: true,
         ganho: ganhoReal,
         noLugar,
-        valido: noLugar && ganhoReal > 0,
+        degenerado,
+        valido: noLugar && ganhoReal > 0 && !degenerado,
       };
     }
 
@@ -38,16 +46,20 @@ export function analisarDescolamento(numerador, denominador, polos, zeros) {
       ganho: ganho ? ganho.re : Infinity,
       ganhoComplexo: ganho,
       noLugar: ganhoValido,
-      valido: ganhoValido,
+      degenerado,
+      valido: ganhoValido && !degenerado,
     };
   });
+
+  const semRepetidos = (lista) => lista.filter((item, indice) => lista
+    .findIndex((outro) => C.distancia(outro.s, item.s) < 1e-6 * Math.max(1, escala)) === indice);
 
   return {
     derivadaNumerador,
     derivadaDenominador,
     equacao,
     candidatos,
-    pontosValidos: candidatos.filter((item) => item.valido),
-    pontosReaisValidos: candidatos.filter((item) => item.valido && item.real),
+    pontosValidos: semRepetidos(candidatos.filter((item) => item.valido)),
+    pontosReaisValidos: semRepetidos(candidatos.filter((item) => item.valido && item.real)),
   };
 }
