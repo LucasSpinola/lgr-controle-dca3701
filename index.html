@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LGR em 12 passos</title>
+  <meta name="description" content="Traçado do lugar geométrico das raízes em 12 passos, com a memória de cálculo completa.">
+  <meta name="author" content="Lucas Augusto Spinola Pinto">
+  <link rel="icon" href="assets/img/dca.gif">
+  <link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="assets/css/estilo.css">
+  <script defer src="assets/vendor/katex/katex.min.js"></script>
+  <script type="module" src="assets/js/principal.js"></script>
+</head>
+<body>
+  <header class="barra">
+    <div class="barra-interna">
+      <div class="marcas">
+        <img class="marca marca-ufrn" src="assets/img/ufrn.png"
+             alt="Universidade Federal do Rio Grande do Norte">
+        <span class="marcas-divisor" aria-hidden="true"></span>
+        <img class="marca marca-dca" src="assets/img/dca.gif"
+             alt="Departamento de Engenharia de Computação e Automação">
+      </div>
+      <p class="barra-texto">
+        Departamento de Engenharia de Computação e Automação
+        <span>Universidade Federal do Rio Grande do Norte</span>
+      </p>
+    </div>
+  </header>
+
+  <section class="capa">
+    <div class="capa-interna">
+      <div class="capa-texto">
+        <p class="etiqueta">DCA-3701 · Projeto de Sistemas de Controle</p>
+        <h1>Lugar geométrico das raízes em 12 passos</h1>
+        <p class="capa-legenda" data-formatar>
+          Informe os coeficientes de $G(s)$ e $H(s)$. A página devolve o traçado e a memória de
+          cálculo inteira, com a fórmula, a substituição e o resultado de cada passo.
+        </p>
+        <p class="assinatura">
+          <span class="assinatura-inicial" aria-hidden="true">LP</span>
+          <span class="assinatura-corpo">
+            <span class="assinatura-nome">Lucas Augusto Spinola Pinto</span>
+            <span class="assinatura-papel">Autor</span>
+          </span>
+        </p>
+      </div>
+
+      <figure class="capa-figura">
+        <figcaption class="capa-figura-titulo">Prévia do traçado</figcaption>
+        <div class="capa-figura-plano" id="miniatura"></div>
+      </figure>
+    </div>
+  </section>
+
+  <main class="conteudo">
+    <form id="formulario" class="painel">
+      <div class="exemplos">
+        <span class="exemplos-rotulo">Comece por um exemplo</span>
+        <div id="exemplos" class="exemplos-lista"></div>
+      </div>
+
+      <div class="colunas colunas-2">
+        <section class="cartao">
+          <header class="cartao-cabecalho">
+            <h2>Planta</h2>
+            <span class="cartao-simbolo">G(s)</span>
+          </header>
+          <div class="campos-duplos">
+            <label class="campo">
+              <span>Numerador</span>
+              <input id="numerador-g" type="text" value="1 2" autocomplete="off" spellcheck="false">
+            </label>
+            <label class="campo">
+              <span>Denominador</span>
+              <input id="denominador-g" type="text" value="1 4 0" autocomplete="off" spellcheck="false">
+            </label>
+          </div>
+          <div class="previa" id="previa-g"></div>
+        </section>
+
+        <section class="cartao">
+          <header class="cartao-cabecalho">
+            <h2>Realimentação</h2>
+            <span class="cartao-simbolo">H(s)</span>
+          </header>
+          <div class="campos-duplos">
+            <label class="campo">
+              <span>Numerador</span>
+              <input id="numerador-h" type="text" value="1" autocomplete="off" spellcheck="false">
+            </label>
+            <label class="campo">
+              <span>Denominador</span>
+              <input id="denominador-h" type="text" value="1 1" autocomplete="off" spellcheck="false">
+            </label>
+          </div>
+          <div class="previa" id="previa-h"></div>
+        </section>
+      </div>
+
+      <p class="dica">
+        Coeficientes separados por espaço, em ordem decrescente de s. Por exemplo,
+        <code>1 4 0</code> vale <code>s² + 4s</code>.
+      </p>
+
+      <div class="colunas colunas-2 blocos">
+        <fieldset class="grupo">
+          <legend>Ponto de teste, usado nos passos 11 e 12</legend>
+          <div class="campos-duplos">
+            <label class="campo">
+              <span>Parte real</span>
+              <input id="ponto-real" type="text" inputmode="decimal" value="0" autocomplete="off">
+            </label>
+            <label class="campo">
+              <span>Parte imaginária</span>
+              <input id="ponto-imaginario" type="text" inputmode="decimal" value="0" autocomplete="off">
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="grupo">
+          <legend>Limites dos gráficos</legend>
+          <label class="campo-linha">
+            <input id="usar-limites" type="checkbox">
+            <span>Definir manualmente</span>
+          </label>
+          <div id="painel-limites" class="campos-quadruplos" hidden>
+            <label class="campo">
+              <span>x mín.</span>
+              <input id="x-minimo" type="text" inputmode="decimal" value="-10" autocomplete="off">
+            </label>
+            <label class="campo">
+              <span>x máx.</span>
+              <input id="x-maximo" type="text" inputmode="decimal" value="2" autocomplete="off">
+            </label>
+            <label class="campo">
+              <span>y mín.</span>
+              <input id="y-minimo" type="text" inputmode="decimal" value="-10" autocomplete="off">
+            </label>
+            <label class="campo">
+              <span>y máx.</span>
+              <input id="y-maximo" type="text" inputmode="decimal" value="10" autocomplete="off">
+            </label>
+          </div>
+          <p class="dica dica-compacta" data-formatar>
+            Sem marcar, a janela sai de polos, zeros, centroide, pontos de descolamento e
+            cruzamentos com $j\omega$.
+          </p>
+        </fieldset>
+      </div>
+
+      <button class="botao" type="submit">Calcular LGR</button>
+    </form>
+
+    <section class="roteiro" id="roteiro">
+      <h2 class="roteiro-titulo">O que você vai ver</h2>
+      <ol class="roteiro-lista" id="roteiro-lista"></ol>
+    </section>
+
+    <div id="resultado" class="resultado"></div>
+  </main>
+</body>
+</html>
