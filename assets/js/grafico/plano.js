@@ -94,6 +94,7 @@ export class Plano {
     this.dimensoes = dimensoes;
     this.area = areaDoPlano(dimensoes);
     this.itensDaLegenda = [];
+    this.rotulosColocados = [];
     this.legendaAtiva = true;
 
     this.svg = criar('svg', {
@@ -330,10 +331,22 @@ export class Plano {
     this.conteudo.appendChild(grupo);
   }
 
+  areaLivre(x, y, largura, ancoragem) {
+    const inicio = ancoragem === 'end' ? x - largura : x;
+    const caixa = { x1: inicio - 3, y1: y - 11, x2: inicio + largura + 3, y2: y + 4 };
+    const encosta = this.rotulosColocados.some((outra) => caixa.x1 < outra.x2
+      && caixa.x2 > outra.x1
+      && caixa.y1 < outra.y2
+      && caixa.y2 > outra.y1);
+    return encosta ? null : caixa;
+  }
+
   rotulo(ponto, texto, atributos = {}, deslocamento = { x: 9, y: -9 }) {
     const { margem } = this.dimensoes;
     const esquerda = margem.esquerda + 4;
     const direita = margem.esquerda + this.area.largura - 4;
+    const topo = margem.topo + 12;
+    const base = margem.topo + this.area.altura - 6;
     const larguraEstimada = texto.length * 5.6;
 
     let x = this.paraX(ponto.re) + deslocamento.x;
@@ -344,8 +357,22 @@ export class Plano {
     }
     x = Math.min(Math.max(x, ancoragem === 'start' ? esquerda : esquerda + larguraEstimada), direita);
 
-    let y = this.paraY(ponto.im) + deslocamento.y;
-    y = Math.min(Math.max(y, margem.topo + 12), margem.topo + this.area.altura - 6);
+    const inicial = Math.min(Math.max(this.paraY(ponto.im) + deslocamento.y, topo), base);
+    let y = inicial;
+    let caixa = this.areaLivre(x, y, larguraEstimada, ancoragem);
+
+    for (let tentativa = 1; caixa === null && tentativa <= 8; tentativa += 1) {
+      const salto = 17 * Math.ceil(tentativa / 2) * (tentativa % 2 === 1 ? -1 : 1);
+      y = inicial + salto;
+      if (y >= topo && y <= base) {
+        caixa = this.areaLivre(x, y, larguraEstimada, ancoragem);
+      }
+    }
+
+    if (caixa === null) {
+      return;
+    }
+    this.rotulosColocados.push(caixa);
 
     const elemento = criar('text', {
       x,

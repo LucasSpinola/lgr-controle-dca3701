@@ -146,9 +146,7 @@ export function desenharDescolamento(plano, pontos) {
   }
   for (const item of pontos) {
     plano.losango(item.s, { fill: CORES.descolamento, stroke: '#5b1a72', 'stroke-width': 1.4 });
-    plano.rotulo(item.s, `s = ${fixo(item.s.re, 2)}, K = ${fixo(item.ganho, 2)}`, {
-      fill: CORES.descolamento,
-    });
+    plano.rotulo(item.s, `K = ${fixo(item.ganho, 2)}`, { fill: CORES.descolamento });
   }
   plano.registrarLegenda('linha', CORES.descolamento, 'Saída/entrada do eixo real');
 }
