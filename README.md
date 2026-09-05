@@ -4,15 +4,14 @@
 
 **Trace o lugar geométrico das raízes e veja a conta inteira, passo a passo.**
 
-Por **Lucas Augusto Spinola Pinto**
+Informe G(s) e H(s) em coeficientes e a página percorre os doze passos clássicos do traçado,
+mostrando a fórmula, a substituição e o resultado de cada um, com o plano s redesenhado a cada etapa.
 
-DCA-3701 Projeto de Sistemas de Controle · Departamento de Engenharia de Computação e Automação · UFRN
+### [Abrir a aplicação](https://lucasspinola.github.io/lgr-controle-dca3701/)
 
-Aplicação estática que recebe $G(s)$ e $H(s)$ em coeficientes, percorre os doze passos clássicos do
-traçado do LGR e mostra cada dedução em LaTeX, com os gráficos do plano $s$ redesenhados a cada
-etapa.
+[Os 12 passos](#os-doze-passos) · [Estrutura](#estrutura-do-repositório) · [Rodar local](#começando) · [Testes](#testes)
 
-<img src="docs/assets/demo.png" alt="Gráfico completo do LGR gerado pela aplicação" width="760">
+<img src="docs/assets/demo.png" alt="Página da aplicação, com a prévia do traçado e o formulário de entrada" width="820">
 
 ![Licença de código: MIT](https://img.shields.io/badge/c%C3%B3digo-MIT-blue)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-f7df1e)
@@ -20,7 +19,10 @@ etapa.
 ![Funciona offline](https://img.shields.io/badge/offline-sim-brightgreen)
 ![Status](https://img.shields.io/badge/status-est%C3%A1vel-brightgreen)
 
-[Aplicação](https://lucasspinola.github.io/lgr-controle-dca3701/) · [Os 12 passos](#os-doze-passos) · [Estrutura](#estrutura-do-repositório) · [Como rodar](#começando) · [Testes](#testes)
+**Lucas Augusto Spinola Pinto**
+
+DCA-3701 Projeto de Sistemas de Controle<br>
+Departamento de Engenharia de Computação e Automação · UFRN
 
 </div>
 
@@ -110,8 +112,13 @@ Cada passo do roteiro é um módulo em `assets/js/interface/passos/`.
 
 ## Começando
 
-A aplicação usa módulos ES, então precisa ser servida por HTTP. Abrir o `index.html` direto do
-sistema de arquivos não funciona, porque o navegador bloqueia `import` em `file://`.
+A aplicação está publicada em
+**[lucasspinola.github.io/lgr-controle-dca3701](https://lucasspinola.github.io/lgr-controle-dca3701/)**,
+e não precisa de instalação nenhuma para usar.
+
+Para rodar uma cópia local, note que a página usa módulos ES e precisa ser servida por HTTP. Abrir o
+`index.html` direto do sistema de arquivos não funciona, porque o navegador bloqueia `import` em
+`file://`.
 
 ```bash
 git clone https://github.com/LucasSpinola/lgr-controle-dca3701.git
