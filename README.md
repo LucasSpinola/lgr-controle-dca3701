@@ -32,9 +32,6 @@ fórmula, a substituição numérica e o resultado, e desenha o plano $s$ corres
 conferir exercício feito à mão, para estudar antes da prova e para entender por que o lugar tem a
 forma que tem.
 
-Tudo roda no navegador. Não há servidor, backend, build nem instalação: a página é HTML, CSS e
-módulos ES, e por isso pode ser publicada direto no GitHub Pages.
-
 ## O que a ferramenta faz
 
 - **Mostra a conta, não só o gráfico:** cada passo traz a fórmula geral, a substituição com os
