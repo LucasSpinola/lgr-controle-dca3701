@@ -8,6 +8,7 @@ import { passos } from './passos/indice.js';
 
 const ESPERA_DA_MINIATURA = 320;
 let agendamentoDaMiniatura = null;
+let pontoDoExemplo = null;
 
 const EXEMPLOS = [
   {
@@ -117,12 +118,38 @@ function limparSelecaoDeExemplo() {
   });
 }
 
+function descartarPontoDoExemplo() {
+  if (pontoDoExemplo === null) {
+    return;
+  }
+
+  const real = document.getElementById('ponto-real');
+  const imaginario = document.getElementById('ponto-imaginario');
+  const intocado = real.value.trim() === pontoDoExemplo.real
+    && imaginario.value.trim() === pontoDoExemplo.imaginario;
+
+  if (intocado) {
+    real.value = '0';
+    imaginario.value = '0';
+  }
+  pontoDoExemplo = null;
+}
+
+function conectarPontoDeTeste() {
+  for (const identificador of ['ponto-real', 'ponto-imaginario']) {
+    document.getElementById(identificador).addEventListener('input', () => {
+      pontoDoExemplo = null;
+    });
+  }
+}
+
 function conectarPrevias() {
   for (const configuracao of CAMPOS_DA_PREVIA) {
     const campos = [configuracao.numerador, configuracao.denominador];
     for (const identificador of campos) {
       document.getElementById(identificador).addEventListener('input', () => {
         limparSelecaoDeExemplo();
+        descartarPontoDoExemplo();
         atualizarPrevia(configuracao);
         agendarMiniatura();
       });
@@ -138,6 +165,7 @@ function aplicarExemplo(exemplo) {
   document.getElementById('denominador-h').value = exemplo.dH;
   document.getElementById('ponto-real').value = exemplo.real;
   document.getElementById('ponto-imaginario').value = exemplo.imaginario;
+  pontoDoExemplo = { real: exemplo.real, imaginario: exemplo.imaginario };
   CAMPOS_DA_PREVIA.forEach(atualizarPrevia);
   agendarMiniatura();
 }
@@ -182,6 +210,7 @@ export function montarApresentacao() {
   montarExemplos();
   montarRoteiro();
   conectarPrevias();
+  conectarPontoDeTeste();
   desenharMiniatura();
 }
 

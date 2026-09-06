@@ -47,6 +47,7 @@ export function analisarSistema(entrada) {
   };
 
   analise.varredura = calcularLugarRaizes(numerador, denominador, {
+    zeros,
     raioDeInteresse: raioDeInteresse(pontosNotaveis(analise, { incluirPontoTeste: true })),
   });
 
@@ -63,6 +64,7 @@ export function esbocarSistema(nG, dG, nH, dH) {
 
   analise.varredura = calcularLugarRaizes(base.numerador, base.denominador, {
     amostras: AMOSTRAS_DO_ESBOCO,
+    zeros: base.zeros,
     raioDeInteresse: raioDeInteresse(pontosNotaveis(analise)),
   });
 

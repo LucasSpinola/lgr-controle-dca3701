@@ -8,7 +8,7 @@ import { calcularAssintotas } from '../assets/js/analise/assintotas.js';
 import { analisarDescolamento } from '../assets/js/analise/descolamento.js';
 import { tabelaRouth } from '../assets/js/analise/routh.js';
 import { analisarCruzamentoJw } from '../assets/js/analise/cruzamentoJw.js';
-import { calcularLugarRaizes } from '../assets/js/analise/lugarRaizes.js';
+import { calcularLugarRaizes, extrairRamo } from '../assets/js/analise/lugarRaizes.js';
 import { criterioDeAngulo, criterioDeModulo } from '../assets/js/analise/criterios.js';
 import { calcularJanela } from '../assets/js/grafico/janela.js';
 import { pontosNotaveis } from '../assets/js/analise/pontosNotaveis.js';
@@ -309,6 +309,30 @@ teste('janela manual e expandida sem cortar a regiao pedida', () => {
   assert.ok(janela.yMin <= manual.yMin + 1e-9);
   assert.ok(janela.yMax >= manual.yMax - 1e-9);
   perto((janela.xMax - janela.xMin) / 700, (janela.yMax - janela.yMin) / 430, 1e-9);
+});
+
+teste('a varredura fecha os ramos nos zeros finitos', () => {
+  const analise = analisarSistema({
+    nG: [2, 0.2, 4],
+    dG: [1, 2, 2, 1],
+    nH: [1],
+    dH: [1, 2],
+    pontoTeste: { re: 0, im: 0 },
+  });
+
+  const finais = [];
+  for (let j = 0; j < analise.varredura.ramos; j += 1) {
+    const ramo = extrairRamo(analise.varredura, j);
+    finais.push(ramo[ramo.length - 1]);
+  }
+
+  for (const zero of analise.zeros) {
+    const folga = finais.reduce(
+      (menor, s) => Math.min(menor, Math.hypot(s.re - zero.re, s.im - zero.im)),
+      Infinity,
+    );
+    assert.ok(folga < 0.02, `ramo parou a ${folga.toFixed(4)} do zero`);
+  }
 });
 
 console.log(`\n${executados - falhas}/${executados} testes passaram`);

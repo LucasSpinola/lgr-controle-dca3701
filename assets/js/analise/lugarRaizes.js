@@ -5,6 +5,9 @@ const AMOSTRAS_INICIAIS = 200;
 const AMOSTRAS_LOGARITMICAS = 2400;
 const FOLGA_ALEM_DA_JANELA = 1.6;
 const GANHO_MAXIMO_ABSOLUTO = 1e9;
+const FRACAO_DA_TOLERANCIA_NO_ZERO = 0.005;
+const FATOR_DA_BUSCA = 10;
+const PASSOS_DO_REFINO = 8;
 
 function combinar(denominador, numerador, ganho) {
   return denominador.map((d, i) => d + ganho * numerador[i]);
@@ -13,6 +16,17 @@ function combinar(denominador, numerador, ganho) {
 function maiorModulo(numerador, denominador, ganho) {
   const encontradas = raizes(combinar(denominador, numerador, ganho));
   return encontradas.reduce((total, z) => Math.max(total, C.modulo(z)), 0);
+}
+
+function maiorFolgaAteOsZeros(numerador, denominador, zeros, ganho) {
+  const encontradas = raizes(combinar(denominador, numerador, ganho));
+  if (encontradas.length === 0) {
+    return Infinity;
+  }
+  return zeros.reduce((maior, zero) => {
+    const proxima = encontradas.reduce((menor, s) => Math.min(menor, C.distancia(s, zero)), Infinity);
+    return Math.max(maior, proxima);
+  }, 0);
 }
 
 export function estimarGanhoMaximo(numerador, denominador, raioDeInteresse = 10) {
@@ -51,6 +65,38 @@ export function estimarGanhoMaximo(numerador, denominador, raioDeInteresse = 10)
   return Math.max(superior, 1e-3);
 }
 
+export function estimarGanhoParaFecharNosZeros(numerador, denominador, opcoes = {}) {
+  const raioDeInteresse = Math.max(opcoes.raioDeInteresse || 0, 1);
+  const alvo = raioDeInteresse * FOLGA_ALEM_DA_JANELA;
+  const finitos = opcoes.zeros || raizes(numerador);
+  const zeros = finitos.filter((z) => C.modulo(z) <= alvo);
+  if (zeros.length === 0) {
+    return 0;
+  }
+
+  const tolerancia = raioDeInteresse * FRACAO_DA_TOLERANCIA_NO_ZERO;
+  const folga = (ganho) => maiorFolgaAteOsZeros(numerador, denominador, zeros, ganho);
+
+  let superior = 1;
+  while (folga(superior) > tolerancia) {
+    if (superior >= GANHO_MAXIMO_ABSOLUTO) {
+      return GANHO_MAXIMO_ABSOLUTO;
+    }
+    superior = Math.min(superior * FATOR_DA_BUSCA, GANHO_MAXIMO_ABSOLUTO);
+  }
+
+  let inferior = superior / FATOR_DA_BUSCA;
+  for (let passo = 0; passo < PASSOS_DO_REFINO; passo += 1) {
+    const meio = Math.sqrt(inferior * superior);
+    if (folga(meio) <= tolerancia) {
+      superior = meio;
+    } else {
+      inferior = meio;
+    }
+  }
+  return superior;
+}
+
 function montarGanhos(ganhoMaximo, amostras) {
   const limite = Math.max(ganhoMaximo, 1e-3);
   const iniciais = Math.max(20, Math.round(amostras * 0.08));
@@ -82,8 +128,15 @@ function montarGanhos(ganhoMaximo, amostras) {
 export function calcularLugarRaizes(numerador, denominador, opcoes = {}) {
   const ramos = denominador.length - 1;
   const amostras = opcoes.amostras || AMOSTRAS_INICIAIS + AMOSTRAS_LOGARITMICAS;
-  const limite = opcoes.ganhoMaximo
+  const ganhoDaJanela = opcoes.ganhoMaximo
     || estimarGanhoMaximo(numerador, denominador, opcoes.raioDeInteresse);
+  const ganhoDosZeros = opcoes.ganhoMaximo
+    ? 0
+    : estimarGanhoParaFecharNosZeros(numerador, denominador, {
+      zeros: opcoes.zeros,
+      raioDeInteresse: opcoes.raioDeInteresse,
+    });
+  const limite = Math.max(ganhoDaJanela, ganhoDosZeros);
   const ganhos = montarGanhos(limite, amostras);
 
   const re = new Float64Array(ganhos.length * ramos);
@@ -114,7 +167,16 @@ export function calcularLugarRaizes(numerador, denominador, opcoes = {}) {
     anteriores = atuais;
   }
 
-  return { ganhos, re, im, ramos, amostras: ganhos.length, ganhoMaximo: limite };
+  return {
+    ganhos,
+    re,
+    im,
+    ramos,
+    amostras: ganhos.length,
+    ganhoMaximo: limite,
+    ganhoDaJanela,
+    ganhoDosZeros,
+  };
 }
 
 export function extrairRamo(varredura, indice) {

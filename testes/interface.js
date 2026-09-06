@@ -215,6 +215,39 @@ teste('o plano completo mantem legenda e titulo', () => {
   assert.ok(plano.elemento().serializar().includes('Lugar'));
 });
 
+const { montarApresentacao } = await import('../assets/js/interface/apresentacao.js');
+
+function aplicarSegundoExemplo() {
+  const lista = document.getElementById('exemplos');
+  lista.children[1].ouvintes.click();
+}
+
+function editarCoeficiente(valor) {
+  const campo = document.getElementById('numerador-g');
+  campo.value = valor;
+  campo.ouvintes.input();
+}
+
+teste('editar coeficiente descarta o ponto de teste herdado do exemplo', () => {
+  montarApresentacao();
+  aplicarSegundoExemplo();
+  assert.equal(document.getElementById('ponto-real').value, '-0.4226');
+
+  editarCoeficiente('2 0.2 4');
+  assert.equal(document.getElementById('ponto-real').value, '0');
+  assert.equal(document.getElementById('ponto-imaginario').value, '0');
+});
+
+teste('ponto de teste digitado pelo usuario sobrevive a troca de coeficientes', () => {
+  aplicarSegundoExemplo();
+  const real = document.getElementById('ponto-real');
+  real.value = '-1.5';
+  real.ouvintes.input();
+
+  editarCoeficiente('1 3');
+  assert.equal(real.value, '-1.5');
+});
+
 console.log(`\n${executados - falhas}/${executados} testes de interface passaram`);
 if (falhas > 0) {
   process.exitCode = 1;
