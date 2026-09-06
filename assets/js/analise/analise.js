@@ -46,8 +46,14 @@ export function analisarSistema(entrada) {
     criterioModulo: criterioDeModulo(pontoTeste, zeros, polos),
   };
 
+  const ganhosNotaveis = [
+    ...analise.descolamento.pontosValidos.map((item) => item.ganho),
+    ...analise.cruzamentoJw.cruzamentos.map((item) => item.ganho),
+  ];
+
   analise.varredura = calcularLugarRaizes(numerador, denominador, {
     zeros,
+    ganhosNotaveis,
     raioDeInteresse: raioDeInteresse(pontosNotaveis(analise, { incluirPontoTeste: true })),
   });
 
@@ -58,13 +64,14 @@ export function esbocarSistema(nG, dG, nH, dH) {
   const base = geometria(nG, dG, nH, dH, { re: 0, im: 0 });
   const analise = {
     ...base,
-    descolamento: { pontosReaisValidos: [] },
+    descolamento: analisarDescolamento(base.numerador, base.denominador, base.polos, base.zeros),
     cruzamentoJw: { cruzamentos: [] },
   };
 
   analise.varredura = calcularLugarRaizes(base.numerador, base.denominador, {
     amostras: AMOSTRAS_DO_ESBOCO,
     zeros: base.zeros,
+    ganhosNotaveis: analise.descolamento.pontosValidos.map((item) => item.ganho),
     raioDeInteresse: raioDeInteresse(pontosNotaveis(analise)),
   });
 

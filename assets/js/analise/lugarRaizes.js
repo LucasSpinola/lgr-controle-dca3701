@@ -8,6 +8,17 @@ const GANHO_MAXIMO_ABSOLUTO = 1e9;
 const FRACAO_DA_TOLERANCIA_NO_ZERO = 0.005;
 const FATOR_DA_BUSCA = 10;
 const PASSOS_DO_REFINO = 8;
+const DESVIOS_AO_REDOR_DO_NOTAVEL = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 5e-2];
+
+function grauEfetivo(coeficientes) {
+  const escala = coeficientes.reduce((maior, valor) => Math.max(maior, Math.abs(valor)), 0);
+  const desprezivel = 1e-14 * Math.max(1, escala);
+  let inicio = 0;
+  while (inicio < coeficientes.length - 1 && Math.abs(coeficientes[inicio]) <= desprezivel) {
+    inicio += 1;
+  }
+  return coeficientes.length - 1 - inicio;
+}
 
 function combinar(denominador, numerador, ganho) {
   return denominador.map((d, i) => d + ganho * numerador[i]);
@@ -97,7 +108,39 @@ export function estimarGanhoParaFecharNosZeros(numerador, denominador, opcoes = 
   return superior;
 }
 
-function montarGanhos(ganhoMaximo, amostras) {
+export function limitesDeGanho(numerador, denominador, opcoes = {}) {
+  const ganhoDaJanela = estimarGanhoMaximo(numerador, denominador, opcoes.raioDeInteresse);
+  const ganhoDosZeros = estimarGanhoParaFecharNosZeros(numerador, denominador, {
+    zeros: opcoes.zeros,
+    raioDeInteresse: opcoes.raioDeInteresse,
+  });
+  const ramosQueFogem = grauEfetivo(denominador) - grauEfetivo(numerador);
+
+  let limite = Math.max(ganhoDaJanela, ganhoDosZeros);
+  if (ramosQueFogem === 0 && ganhoDosZeros > 0) {
+    limite = ganhoDosZeros;
+  }
+
+  return { limite, ganhoDaJanela, ganhoDosZeros, ramosQueFogem };
+}
+
+function acrescentarNotaveis(lista, notaveis, limite) {
+  for (const notavel of notaveis) {
+    if (!Number.isFinite(notavel) || notavel <= 0 || notavel > limite) {
+      continue;
+    }
+    lista.push(notavel);
+    for (const desvio of DESVIOS_AO_REDOR_DO_NOTAVEL) {
+      lista.push(notavel * (1 - desvio));
+      const acima = notavel * (1 + desvio);
+      if (acima <= limite) {
+        lista.push(acima);
+      }
+    }
+  }
+}
+
+function montarGanhos(ganhoMaximo, amostras, notaveis = []) {
   const limite = Math.max(ganhoMaximo, 1e-3);
   const iniciais = Math.max(20, Math.round(amostras * 0.08));
   const logaritmicas = Math.max(40, amostras - iniciais);
@@ -115,6 +158,8 @@ function montarGanhos(ganhoMaximo, amostras) {
     lista.push(10 ** (expoenteInicial + t * (expoenteFinal - expoenteInicial)));
   }
 
+  acrescentarNotaveis(lista, notaveis, limite);
+
   lista.sort((a, b) => a - b);
   const saida = [];
   for (const valor of lista) {
@@ -128,16 +173,11 @@ function montarGanhos(ganhoMaximo, amostras) {
 export function calcularLugarRaizes(numerador, denominador, opcoes = {}) {
   const ramos = denominador.length - 1;
   const amostras = opcoes.amostras || AMOSTRAS_INICIAIS + AMOSTRAS_LOGARITMICAS;
-  const ganhoDaJanela = opcoes.ganhoMaximo
-    || estimarGanhoMaximo(numerador, denominador, opcoes.raioDeInteresse);
-  const ganhoDosZeros = opcoes.ganhoMaximo
-    ? 0
-    : estimarGanhoParaFecharNosZeros(numerador, denominador, {
-      zeros: opcoes.zeros,
-      raioDeInteresse: opcoes.raioDeInteresse,
-    });
-  const limite = Math.max(ganhoDaJanela, ganhoDosZeros);
-  const ganhos = montarGanhos(limite, amostras);
+  const estimativa = opcoes.ganhoMaximo
+    ? { limite: opcoes.ganhoMaximo, ganhoDaJanela: opcoes.ganhoMaximo, ganhoDosZeros: 0 }
+    : limitesDeGanho(numerador, denominador, opcoes);
+  const { limite, ganhoDaJanela, ganhoDosZeros } = estimativa;
+  const ganhos = montarGanhos(limite, amostras, opcoes.ganhosNotaveis || []);
 
   const re = new Float64Array(ganhos.length * ramos);
   const im = new Float64Array(ganhos.length * ramos);

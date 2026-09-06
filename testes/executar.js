@@ -335,6 +335,37 @@ teste('a varredura fecha os ramos nos zeros finitos', () => {
   }
 });
 
+teste('a varredura amostra os ganhos de descolamento e de cruzamento', () => {
+  const analise = analisarSistema({
+    nG: [1, 4, 5],
+    dG: [1, 5, 0],
+    nH: [1, 1],
+    dH: [1, 0],
+    pontoTeste: { re: 0, im: 0 },
+  });
+
+  assert.ok(
+    analise.varredura.ganhoMaximo < 1e4,
+    `nenhum ramo foge, o limite nao deveria disparar: ${analise.varredura.ganhoMaximo}`,
+  );
+
+  const descolamento = analise.descolamento.pontosReaisValidos[0];
+  perto(descolamento.s.re, -5 / 3, 1e-6);
+  perto(descolamento.ganho, 12.5, 1e-6);
+
+  const indice = analise.varredura.ganhos.findIndex(
+    (ganho) => Math.abs(ganho - descolamento.ganho) < 1e-9 * descolamento.ganho,
+  );
+  assert.ok(indice >= 0, 'o ganho de descolamento precisa virar amostra da varredura');
+
+  for (let j = 0; j < analise.varredura.ramos; j += 1) {
+    const re = analise.varredura.re[indice * analise.varredura.ramos + j];
+    const im = analise.varredura.im[indice * analise.varredura.ramos + j];
+    perto(re, -5 / 3, 1e-3);
+    perto(im, 0, 1e-3);
+  }
+});
+
 console.log(`\n${executados - falhas}/${executados} testes passaram`);
 if (falhas > 0) {
   process.exitCode = 1;
